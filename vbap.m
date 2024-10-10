@@ -13,7 +13,7 @@ ngroups = [(1:length(speakerAzimuthAngles))', [2:length(speakerAzimuthAngles) 1]
 N = size(ngroups, 1);
 
 % The azimuth angles of the sources in degrees
-sourceAngles = [15];
+sourceAngles = [15, -15, 180, 0, 30];
 
 % The number of sources
 M = length(sourceAngles);
@@ -28,6 +28,8 @@ G = zeros(M, N, 2);
 for m = 1:M
     for n = 1:N
         Ln1n2(:,:) = L(ngroups(n, :), :);
-        G(m, n, :) = P(:, m)' * inv(Ln1n2);        
+        G(m, n, :) = P(:, m)' * inv(Ln1n2);  
     end
 end
+
+max(0, G)
