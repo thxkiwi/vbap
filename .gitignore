@@ -1,0 +1,21 @@
+# MATLAB specific files
+*.asv
+*.m~
+*.mlx
+*.mlappinstall
+*.mlpkginstall
+*.mltbx
+*.mlapp
+*.mlproj
+*.slx
+*.mdl
+*.slxp
+*.sldd
+*.sltx
+*.mexa64
+*.mexmaci64
+*.mexw64
+
+# MATLAB code generation
+codegen/
+slprj/
