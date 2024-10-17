@@ -19,3 +19,5 @@
 # MATLAB code generation
 codegen/
 slprj/
+
+nohup.out
