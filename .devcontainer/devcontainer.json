@@ -1,0 +1,32 @@
+{
+    "name": "THX Audio Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--init",
+        "-p",
+        "8888:8888"
+    ],
+    // Optional: VS Code extensions to install
+    "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+    ],
+    // Forward the port for Jupyter Notebook
+    "forwardPorts": [
+        8888
+    ],
+    // Mount your project folder to the workspace
+    "workspaceFolder": "/home/jovyan/work",
+    // Mount the host folder into the container
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/home/jovyan/work,type=bind"
+    ],
+    "remoteUser": "jovyan",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    // Command to run after the container starts, specifying the port
+    "postStartCommand": "nohup jupyter notebook --ip 0.0.0.0 --no-browser --allow-root --notebook-dir=/home/jovyan/work --port=8888 & sleep 5 && export JUPYTER_SERVER_URI=http://127.0.0.1:8888?token=$(jupyter notebook list | grep -oP 'token=\\K[^ ]+')"
+}
