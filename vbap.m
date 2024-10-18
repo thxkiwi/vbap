@@ -1,9 +1,12 @@
 % The azimuth angles of the loudspeakers in degrees
 speakerAzimuthAngles = [30, 110, 150, -150, -110, -30];
 
-% Unit vectors for the loudspeakers. Note that matrix is constructed as the transpose of the vectors.
-% When P' = G * L, the result P' is the correct p = g1 L1 + g2 L2 by scaled vector addition. The the
-% projections of the unit vectors sum to the unit vector in the direction of the source.
+% Unit vectors for the loudspeakers. Note that matrix is constructed as the
+% transpose of the vectors.
+%
+% When P' = G * L, the result P' is the correct p = g1 L1 + g2 L2 by scaled 
+% vector addition, where L1 and L2 are vectors. The projections of the unit 
+% vectors sum to the unit vector in the direction of the source.
 [x, y] = pol2cart(speakerAzimuthAngles / 180 * pi, ones(size(speakerAzimuthAngles)));
 L = cat(2, x', y');
 
