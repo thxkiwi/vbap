@@ -13,7 +13,7 @@ RUN pip install simpleaudio
 RUN pip install audioread
 RUN conda install -y libsndfile portmidi
 USER root
-RUN apt-get update && apt-get install -y liblo-dev
+RUN apt-get update && apt-get install -y liblo-dev git-lfs
 USER jovyan
 RUN pip install pyo
 
