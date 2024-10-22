@@ -1,8 +1,6 @@
 {
     "name": "THX Audio Dev Container",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
+    "image": "539695705707.dkr.ecr.us-east-1.amazonaws.com/audio-notebook:latest",
     "runArgs": [
         "--init",
         "-p",
