@@ -1,0 +1,19 @@
+{
+    "configurations": [        
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Debug Python File (conda:base)",
+            "program": "${workspaceFolder}/${input:programPath}",
+            "console": "integratedTerminal",
+            "python": "/opt/conda/bin/python"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "programPath",
+            "description": "Enter the path to the Python file to launch"
+        }
+    ]
+}
