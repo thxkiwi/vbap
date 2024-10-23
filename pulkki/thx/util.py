@@ -36,6 +36,11 @@ def magnitude_spectrum(x, fs, scale='dB', legend=None, axes=None, **kwargs):
     fig = None
     if axes is None:
         fig, axes = plt.subplots(figsize=(38.4, 21.6), dpi=300)
+
+    title = kwargs.get('title', dict(dB='Magnitude Spectrum (dB)', linear='Magnitude Spectrum')[scale])
+    # Remove 'title' from kwargs if it exists
+    kwargs.pop('title', None)
+
     if x.ndim == 1:
         axes.magnitude_spectrum(x[int(x.shape[0] / 2):int(x.shape[0] / 2 + 8192)], Fs=fs, scale=scale, **kwargs)
     elif x.ndim == 2:
@@ -43,9 +48,7 @@ def magnitude_spectrum(x, fs, scale='dB', legend=None, axes=None, **kwargs):
             axes.magnitude_spectrum(x[int(x.shape[0] / 2):int(x.shape[0] / 2 + 8192), i], Fs=fs, scale=scale, **kwargs)
     axes.set_xscale('log')
 
-    title = kwargs.get('title')
-    if title is None:
-        title = dict(dB='Magnitude Spectrum (dB)', linear='Magnitude Spectrum')[scale]
+    axes.set_title(title)
 
     axes.grid(which='both', axis='both', linestyle='--', linewidth=0.5)
     axes.tick_params(axis='x', which='minor', direction='in', length=4, width=0.5)
