@@ -205,8 +205,7 @@ class VectorBasePanner:
 
         self.__set_emitter_angles__(emitter_angles)
         self.__set_source_angles__(source_angles)
-        self.__calculate_gains__()
-        self.__find_valid_panned_sources__()
+        self.__on_updated__()
 
     def __calculate_gains__(self):
         """
@@ -256,13 +255,17 @@ class VectorBasePanner:
         Returns:
             list: A list of PannedSource objects with valid gains.
         """
-        return [PannedSource(source_angle=self.__source_angles__[m],
-                            panning_pair=self.__panning_pairs__[n],
-                            gains=self.__G__[m, n, :]) 
-                            for m in range(len(self.__source_angles__)) 
-                            for n in range(len(self.__emitter_angles__)) 
-                            if ((self.__G__[m,n,0] == 0.0) and (self.__G__[m,n,1] == 1.0)) \
-                                or np.logical_and(self.__G__[m,n,:] > 0, self.__G__[m,n,:] < 1).all()]
+        self.__panned_sources__ = [
+            PannedSource(
+            source_angle=self.__source_angles__[m],
+            panning_pair=self.__panning_pairs__[n],
+            gains=self.__G__[m, n, :]
+            )
+            for m in range(len(self.__source_angles__))
+            for n in range(len(self.__emitter_angles__))
+            if ((self.__G__[m, n, 0] == 0.0) and (self.__G__[m, n, 1] == 1.0))
+            or np.logical_and(self.__G__[m, n, :] > 0, self.__G__[m, n, :] < 1).all()
+        ]
     
     def __set_emitter_angles__(self, emitter_angles):
         """
@@ -428,22 +431,20 @@ class VectorBasePanner:
             than or equal to the number of output channels.
         """
 
-        if source_signal.shape[1] != output.shape[0]:
-            raise ValueError('The number of rows in sources must be equal to the number of rows in output.')
+        if source_signal.shape[0] != output.shape[0]:
+            raise ValueError(f'The number of rows in sources must be equal to the number of rows in output. {source_signal.shape=}, {output.shape=}')
 
-        if source_signal.shape[0] != len(self.__source_angles__):
-            raise ValueError('The number sources must be equal to the number of sources in the configuration.')
+        if source_signal.shape[1] != len(self.__source_angles__):
+            raise ValueError(f'The number sources must be equal to the number of sources in the configuration. {source_signal.shape=}, {self.__source_angles__.shape=}')
         
         if self.__emitter_channel_indices__.max() >= output.shape[1]:
-            raise ValueError('The maximum channel index in the configuration must be less than the number of output channels.')
-
-        panned_sources = self.valid_panned_sources()
+            raise ValueError(f'The maximum channel index in the configuration must be less than the number of output channels. {self.__emitter_channel_indices__}, {output.shape=}')
 
         # Preallocate the panned outputs.
-        panned_outputs = np.zeros((output.shape[0], len(panned_sources)))
+        panned_outputs = np.zeros((output.shape[0], len(self.__emitter_angles__)))
 
         # Pan each source to the panned outputs.
-        for panned_source_index, panned_source in enumerate(panned_sources):
+        for panned_source_index, panned_source in enumerate(self.__panned_sources__):
             panned_outputs[:, panned_source.panning_pair] \
                 += panned_source.pan(source_signal[:, panned_source_index])
 
@@ -452,7 +453,7 @@ class VectorBasePanner:
         # Extract panning pairs and gains from panned sources
         panned_pairs_gains = np.array([list(zip(panned_source.panning_pair, 
                                                 panned_source.gains)) 
-                                                for panned_source in panned_sources])
+                                                for panned_source in self.__panned_sources__])
 
         # Flatten to emitter indices and gains
         panned_source_emitter_indices = panned_pairs_gains[:,:,0].astype(int).flatten()
@@ -464,7 +465,7 @@ class VectorBasePanner:
 
         # Sum the panned outputs into the output channels according to the self.emitter_channel_indices.
         for (emitter_index, channel_index) in enumerate(self.__emitter_channel_indices__):
-            output[:, self.__emitter_channel_indices__[channel_index]] += panned_outputs[:, emitter_index]
+            output[:, channel_index] += panned_outputs[:, emitter_index]
 
         # Subtract 3dB from the channels that had any panned audio summed into them.
         output[:, unique_panned_source_channel_indices] *= self.MINUS_3dB
