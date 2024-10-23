@@ -9,7 +9,8 @@
     // Optional: VS Code extensions to install
     "extensions": [
         "ms-python.python",
-        "ms-toolsai.jupyter"
+        "ms-toolsai.jupyter",
+        "ms-toolsai.datawrangler"
     ],
     // Forward the port for Jupyter Notebook
     "forwardPorts": [
