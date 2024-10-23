@@ -9,6 +9,9 @@
     // Optional: VS Code extensions to install
     "extensions": [
         "ms-python.python",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker",
+        "ms-python.vscode-pylance",
         "ms-toolsai.jupyter",
         "ms-toolsai.datawrangler"
     ],
