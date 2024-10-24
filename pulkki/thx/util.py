@@ -95,3 +95,20 @@ if __name__ == '__main__':
     scipy.io.wavfile.write(f'crossfaded-{int(float(crossfade_start)/fs)}-{int(float(crossfade_end)/fs)}.wav', fs, output)
         
     pass
+
+from IPython.display import display, Markdown
+
+def center(s):
+    return f'<p style="text-align: center;">{s}</p>'
+
+def h1(s):
+    return f'<h1>{s}</h1>'
+
+def h2(s):
+    return f'<h2>{s}</h2>'
+
+def h3(s):
+    return f'<h3>{s}</h3>'
+
+def md(s):
+    return display(Markdown(s))
