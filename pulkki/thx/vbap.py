@@ -66,11 +66,9 @@ class PannedSource:
         
 
     def __str__(self):
-        emitter_angles_degrees = np.degrees(self.__emitter_angles__)
-        return (f'Source at {self.source_angle:4}° := {self.gains[0]:0.4f} * '
-                f'{self.panning_pair[0]:2}/{emitter_angles_degrees[self.panning_pair[0]]:4}° + '
-                f'{self.gains[1]:0.4f} * {self.panning_pair[1]:2}/'
-                f'{emitter_angles_degrees[self.panning_pair[1]]:4}°')
+        return (f'Source at {np.degrees(self.source_angle):7.2f}° := {self.gains[0]:0.4f} * '
+                f'{self.panning_pair[0]:2} + '
+                f'{self.gains[1]:0.4f} * {self.panning_pair[1]:2}')
     
     def pan(self, source_audio):
         """
@@ -226,12 +224,16 @@ class VectorBasePanner:
           panning pairs and the source positions.
         - The resulting gains are normalized to ensure they are unit vectors.
         """
-        self.__G__ = np.zeros((len(self.__source_angles__), len(self.__emitter_angles__), 2))
+        
+        self.__G__ = np.zeros((len(self.__source_angles__), 
+                               len(self.__emitter_angles__), 2))
 
-        # Preallocate and reuse the matrix that contains the gains for each source and each emitter.
+        # Preallocate and reuse the matrix that contains the gains for each 
+        # source and each emitter.
         Ln1n2 = np.zeros((2,2))
 
-        # For M sound sources, for N panning pairs, [n1, n2] where n1 is 'more clock-wise' than n2.
+        # For M sound sources, for N panning pairs, [n1, n2] where n1 is 
+        # 'more clock-wise' than n2.
         for m in range(len(self.__source_angles__)):
             # Must use reshape. numpy 1D arrays have shape (n,) and not (n, 1).
             pT = self.__P__[m].reshape(1, 2)
@@ -253,34 +255,40 @@ class VectorBasePanner:
         - All gains are strictly between 0 and 1.
 
         Returns:
-            list: A list of PannedSource objects with valid gains.
+            list: A list of ``PannedSource`` objects with valid gains.
         """
-        self.__panned_sources__ = [
-            PannedSource(
-            source_angle=self.__source_angles__[m],
-            panning_pair=self.__panning_pairs__[n],
-            gains=self.__G__[m, n, :]
-            )
-            for m in range(len(self.__source_angles__))
-            for n in range(len(self.__emitter_angles__))
-            if ((self.__G__[m, n, 0] == 0.0) and (self.__G__[m, n, 1] == 1.0))
-            or np.logical_and(self.__G__[m, n, :] > 0, self.__G__[m, n, :] < 1).all()
-        ]
+        
+        self.__panned_sources__ = \
+            [PannedSource(source_angle=self.__source_angles__[m], 
+                          panning_pair=self.__panning_pairs__[n],
+                          gains=self.__G__[m, n, :])
+                for m in range(len(self.__source_angles__))
+                for n in range(len(self.__emitter_angles__))
+                                        
+                # The source is entirely in the most counter-clockwise emitter...
+                if ((self.__G__[m, n, 0] == 0.0) \
+                    and (self.__G__[m, n, 1] == 1.0)) 
+                                        
+                # ...or the source is entirely between the emitters.
+                or np.logical_and(self.__G__[m, n, :] > 0, 
+                                self.__G__[m, n, :] < 1)
+                    .all()
+            ]
     
     def __set_emitter_angles__(self, emitter_angles):
         """
         Set the emitter angles and compute related attributes.
-        This method sorts the provided emitter angles, converts them to radians,
-        and computes the corresponding directional unit vectors. It also determines
-        the panning pairs based on the sorted angles.
+        This method sorts the provided emitter angles, converts them to 
+        radians, and computes the corresponding directional unit vectors. 
+        It also determines the panning pairs based on the sorted angles.
         
         Parameters
         ----------
         emitter_angles : array-like
-            A list or array of emitter angles and their corresponding channel 
-            indices. The array should have shape (N, 2), where N is the number of 
-            emitters. The first column contains the angles in degrees, and the 
-            second column contains the channel indices.
+            A list or array of emitter angles and their corresponding 
+            channel indices. The array should have shape (N, 2), where N 
+            is the number of emitters. The first column contains the angles 
+            in degrees, and the second column contains the channel indices.
         
         Attributes
         ----------
@@ -291,8 +299,8 @@ class VectorBasePanner:
             Channel indices corresponding to the sorted emitter angles.
         
         __L__ : ndarray
-            Array of shape (N, 2) containing the cosine and sine of the sorted 
-            emitter angles.
+            Array of shape (N, 2) containing the cosine and sine of the 
+            sorted emitter angles.
         
         __panning_pairs__ : list of tuples
             List of tuples representing pairs of indices for panning.
@@ -309,9 +317,10 @@ class VectorBasePanner:
                                       np.sin(self.__emitter_angles__)))
         
         # Works because self.__emitter_angles__ is sorted.
-        self.__panning_pairs__ = [
-            (i, i + 1) for i in range(len(self.__emitter_angles__) - 1)
-        ] + [(len(self.__emitter_angles__) - 1, 0)]
+        # Successive pairs concatenated with the pair of the last and first.
+        self.__panning_pairs__ = \
+            [(i, i + 1) for i in range(len(self.__emitter_angles__) - 1)] \
+                + [(len(self.__emitter_angles__) - 1, 0)]
         
     def __set_source_angles__(self, source_angles):
         """
