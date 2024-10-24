@@ -39,6 +39,7 @@ class PannedSource:
             the group.
     """
 
+    # \todo: Add emitter angles
     def __init__(self, source_angle, panning_pair, gains):
         """
         Initialize the VBAP (Vector Base Amplitude Panning) object for a source 
@@ -66,6 +67,7 @@ class PannedSource:
         
 
     def __str__(self):
+        # \todo: Add emitter angles
         return (f'Source at {np.degrees(self.source_angle):7.2f}° := {self.gains[0]:0.4f} * '
                 f'{self.panning_pair[0]:2} + '
                 f'{self.gains[1]:0.4f} * {self.panning_pair[1]:2}')
@@ -292,6 +294,7 @@ class VectorBasePanner(object):
             list: A list of ``PannedSource`` objects with valid gains.
         """
         
+        # \todo: Add emitter angles
         self.__panned_sources__ = \
             [PannedSource(source_angle=self.__source_angles__[m], 
                           panning_pair=self.__panning_pairs__[n],
