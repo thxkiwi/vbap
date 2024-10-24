@@ -93,7 +93,7 @@ class PannedSource:
 
         return self.gains * np.repeat(source_audio, 2).reshape(len(source_audio), 2)
 
-class VectorBasePanner:
+class VectorBasePanner(object):
     """
     Class for Vector Base Amplitude Panning (VBAP).
 
@@ -152,7 +152,7 @@ class VectorBasePanner:
 
     MINUS_3dB = thx.util.db2mag(-3.0)
 
-    def __init__(self, emitter_angles, source_angles):
+    def __init__(self, emitter_angles, source_angles, normalize_gains=True):
         """
         Initialize the VBAP (Vector Base Amplitude Panning) class with emitter 
         and source angles.
@@ -198,13 +198,40 @@ class VectorBasePanner:
         # source and each emitter.
         self.__G__ = None
         
+        self.__G_normalized__ = None
+        self.__G_unnormalized__ = None
+        
+        self.normalize_gains = normalize_gains
+        
         # A list of valid PannedSource objects with valid gains.
         self.__panned_sources__ = None
-
+        
         self.__set_emitter_angles__(emitter_angles)
         self.__set_source_angles__(source_angles)
         self.__on_updated__()
+        
+        def __setattr__(setattrself, name, value):
+            """
+            Override the __setattr__ method to update when self.normalize_gains is set.
 
+            Parameters:
+            -----------
+            name : str
+                The name of the attribute to set.
+            
+            value : Any
+                The value to set the attribute to.
+            """
+            setattrself.__super__.__setattr__(name, value)
+            if name in ['normalize_gains']:
+                if value:
+                    setattrself.__G__ = setattrself.__G_normalized__
+                else:
+                    setattrself.__G__ = setattrself.__G_unnormalized__
+                
+        self.__setattr__ = __setattr__
+
+        
     def __calculate_gains__(self):
         """
         Calculate the gains for each source and each emitter.
@@ -225,8 +252,11 @@ class VectorBasePanner:
         - The resulting gains are normalized to ensure they are unit vectors.
         """
         
-        self.__G__ = np.zeros((len(self.__source_angles__), 
-                               len(self.__emitter_angles__), 2))
+        self.__G_unnormalized__ = np.zeros(
+            (len(self.__source_angles__), len(self.__emitter_angles__), 2))
+
+        self.__G_normalized__ = np.zeros(
+            (len(self.__source_angles__), len(self.__emitter_angles__), 2))
 
         # Preallocate and reuse the matrix that contains the gains for each 
         # source and each emitter.
@@ -240,12 +270,16 @@ class VectorBasePanner:
             for n in range(len(self.__panning_pairs__)):
                 panning_pair = np.array(self.__panning_pairs__[n])
                 Ln1n2[:,:] = self.__L__[panning_pair,:]
-                self.__G__[m, n, :] = pT @ np.linalg.inv(Ln1n2)
+                self.__G_unnormalized__[m, n, :] = pT @ np.linalg.inv(Ln1n2)
 
                 # Normalize the gains
-                self.__G__[m, n, :] /= np.linalg.norm(self.__G__[m, n, :])
-
-        return self.__G__
+                norm = np.linalg.norm(self.__G_unnormalized__[m, n, :])
+                self.__G_normalized__[m, n, :] = self.__G_unnormalized__[m, n, :] / norm
+                
+        if self.normalize_gains:
+            self.__G__ = self.__G_normalized__
+        else:
+            self.__G__ = self.__G_unnormalized__
 
     def __find_valid_panned_sources__(self):
         """
